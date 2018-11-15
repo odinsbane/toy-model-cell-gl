@@ -25,7 +25,25 @@ void Connection::setPositions(float* positions){
         length += v*v;
     }
     length = sqrt(length);
-    lnot = length;
+    lnot = 0.02;
+    stiffness = stiffness/lnot;
+
+}
+
+void Connection::setSeparatePositions(float *_a, float *_b){
+    a = _a;
+    b = _b;
+    length = 0;
+    float v;
+    
+    for(int i = 0; i<3; i++){
+        center[i] = (a[i] +b[i])*0.5;
+        v = a[i] - b[i];
+        length += v*v;
+    }
+    
+    length = sqrt(length);
+    lnot = length*0.5;
     stiffness = stiffness/lnot;
 
 }

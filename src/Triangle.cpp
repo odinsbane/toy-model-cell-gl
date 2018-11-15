@@ -10,7 +10,7 @@
 
 Triangle::Triangle(){
     c_not = 1;
-    tau_c = 250.0;
+    tau_c = 7.0;
     for(int i = 0; i<3; i++){
         indices[i] = (t_index)NOT_INIT;
     }

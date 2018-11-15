@@ -29,6 +29,7 @@ class InputAdapter{
     GLFWwindow* window;
     public:
         InputAdapter(CellCam* cam, CellObject* c, GLFWwindow* w);
+        void keyPressed(GLFWwindow* window, int key, int scancode, int action, int mods);
         void update();
         int running;
         bool draw_axis;

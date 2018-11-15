@@ -20,7 +20,7 @@
 #include "texturedbackground.h"
 #include <pthread.h>
 #include <unistd.h>
-#define STEPS_PER_FRAME 10
+#define STEPS_PER_FRAME 500
 
 void showMesh(CellObject* obj);
 void* update_cell_function( void* ptr);
@@ -75,7 +75,7 @@ void showMesh(CellObject* obj){
     glUseProgram(0);
     //mesh->initializeVertexBuffer(theProgram);
     GetError();
-
+    cell.createContractileRing();
 #ifdef DEBUG
     GLuint id2 = glGetAttribLocation(theProgram, "inputColor");
     GLuint id = glGetAttribLocation(theProgram, "position");
@@ -94,7 +94,8 @@ void showMesh(CellObject* obj){
     printf("buffer prepared\n");
 
     int width,height;
-    glfwGetWindowSize(window, &width, &height);
+    //glfwGetWindowSize(window, &width, &height);
+    glfwGetFramebufferSize(window, &width, &height);
     
     camera->resizeWindow((float)width, (float)height);
     
@@ -128,7 +129,7 @@ void showMesh(CellObject* obj){
     {
 
         glfwPollEvents();
-        glClearColor(1.0f, 0.9f, 0.9f, 0.9f);
+        //glClearColor(1.0f, 0.9f, 0.9f, 0.9f);
         glClearDepth(1.0f);
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -155,7 +156,7 @@ void showMesh(CellObject* obj){
         
         
         
-        if(images<800&&counter>STEPS_PER_FRAME){
+        if(images<200&&counter>STEPS_PER_FRAME){
             glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixbuf);
             writer->writeFrame(pixbuf);
             images++;
@@ -165,14 +166,14 @@ void showMesh(CellObject* obj){
                 printf("finished recording\n");
             }
         }
-        
+        counter++;
         
         cell.updateBuffers();
-        pthread_mutex_unlock(&update_lock);
-        int trylock = pthread_mutex_trylock(&update_lock);
-        while(trylock!=0){
-            trylock = pthread_mutex_trylock(&update_lock);
-        }
+        //pthread_mutex_unlock(&update_lock);
+        //int trylock = pthread_mutex_trylock(&update_lock);
+        //while(trylock!=0){
+        //    trylock = pthread_mutex_trylock(&update_lock);
+        //}
         
     }
     writer->close();
@@ -191,18 +192,8 @@ void* update_cell_function( void* ptr){
     int release = 0;
     while((acquire==0)&(release==0)){
 
-        acquire = pthread_mutex_lock(&lock);
         ((CellObject*)ptr)->update();
-        release = pthread_mutex_unlock(&lock);
-        steps++;
-        if(steps>=3){
-            int pause = pthread_mutex_trylock(&update_lock);
-            while(pause!=0){
-                pause=pthread_mutex_trylock(&update_lock);
-                usleep(10);
-            }
-            pthread_mutex_unlock(&update_lock);
-        }
+        
     }
     pthread_exit(NULL);
     return 0;

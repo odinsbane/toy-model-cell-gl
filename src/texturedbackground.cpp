@@ -53,8 +53,12 @@ void TexturedBackground::initializeVertexBuffer(GLuint &theProgram){
 }
 
 void TexturedBackground::draw(GLuint &theProgram){
-
+    GLuint background = glGetUniformLocation(theProgram, "background");
+    
     glUseProgram(theProgram);
+    
+    glUniform1f(background, 1.0);
+    
     glBindVertexArray(vao);
 
     glActiveTexture(GL_TEXTURE0 + texUnit);

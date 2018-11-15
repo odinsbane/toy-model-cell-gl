@@ -153,10 +153,10 @@ CellObject::CellObject(float* triangle_data, int vertex_count){
 
     }
     
-    Vnot = 2*calculateVolume();
+    Vnot = 8*calculateVolume();
     printf("Volume of: %2.4f\n",Vnot);
     
-    draw_connections=false;
+    draw_connections=1;
     working=false;
     perturb_request=false;
 }
@@ -251,7 +251,7 @@ CellObject::CellObject(const std::string &meshfile){
         }
     }
     
-    Vnot = 2*calculateVolume();
+    Vnot = 4*calculateVolume();
     printf("Volume of: %2.4f\n",Vnot);
     draw_connections=false;
     working=false;
@@ -325,6 +325,61 @@ void CellObject::toggleDrawConnections(){
     draw_connections=!draw_connections;
     
 }
+
+/**
+ * @brief CellObject::createContractileRing creates a series of stationary nodes that will be used
+ * for contractile ring.
+ *
+ **/
+void CellObject::createContractileRing(){
+    int count = 0;
+    double sum = 0;
+    float* origin = new float[3];
+    origin[0] = 0;
+    origin[1] = 0;
+    origin[2] = 0;
+    float* normal = new float[3];
+    float* color = new float[3];
+    for(int i = 0; i<3; i++){
+        normal[i]=0;
+        color[i] = 0;
+    }
+    StationaryNode* center = new StationaryNode(origin);
+    center->setNormal(normal);
+    center->setColor(color);
+    int dex = (int)nodes.size();
+    
+    
+    for(Node* n: nodes){
+        
+        double x = n->xyz[0] + 0.005;
+        x = sqrt(x*x);
+        
+        if(x<1e-3){
+            printf("1\t0\t%f\t%f\t%f\n", n->xyz[0], n->xyz[1], n->xyz[2]);
+            double dx = n->xyz[1];
+            double dz = n->xyz[2];
+            
+            double d = sqrt(dx*dx + dz*dz);
+            Connection* con = new Connection(n->index, dex);
+            con->setSeparatePositions(n->xyz, origin);
+            sum += d;
+            count++;
+            connections.push_back(con);
+            n->connections.push_back(con);
+            
+        } else{
+            printf("0\t1\t%f\t%f\t%f\n", n->xyz[0], n->xyz[1], n->xyz[2]);
+            
+        }
+        
+    }
+    printf("%d nodes connect to the center with a mean radius of %f\n", count, sum/count);
+    
+    nodes.push_back(center);
+
+    
+}
 /**
  * @brief CellObject::calculateVolume calculates volume of the current postions by
  *           dotting each triangles normal with the x position. The x-position is approximated
@@ -349,7 +404,6 @@ void CellObject::update(){
         }
         
         float volume = calculateVolume();
-        //printf("volume: %2.4f",volume);
 
         for(int i = 0; i<(int)connections.size(); i++){
             Connection* c = connections[i];
@@ -381,24 +435,8 @@ void CellObject::updateBuffers(){
 float contractile_ring_concentration = 1.0;
 float max_concentration = 100.0;
 void CellObject::constrict(){
-    contractile_ring_concentration = contractile_ring_concentration*0.9;
-    printf("contracting: %f\n", max_concentration - (max_concentration-1)*contractile_ring_concentration);
-    for(int i = 0 ; i<stationaries.size();i++){
-        stationaries[i]->setConcentration(
-            max_concentration - (max_concentration-1)*contractile_ring_concentration
-                                        );
-        for(int k = 0; k<connections.size(); k++){
-            Connection* con = connections[k];
-            if(con->hasIndex(stationaries[i]->index)){
-                for(int j = i+1; j<stationaries.size(); j++){
-                    if(con->hasIndex(stationaries[j]->index)){
-                        con->lnot = 0;
-                    }
-                }
-
-            }
-        }
-    }
+    Node::SPRING=Node::SPRING*1.1;
+    printf("%f \n", Node::SPRING);
 }
 
 void CellObject::perturb(){

@@ -13,16 +13,15 @@
 #include "math.h"
 #include "error.h"
 #include "BinaryMeshReader.h"
+
 #ifndef _CELL_OBJECT
 #define _CELL_OBJECT
+
 #define t_index unsigned int
 #define NOT_INIT -1
-#define PNOT 0.500
-#define SPRING 0.100
 #define DT 1e-2
-#define DRAG 0.5
-#define SUB_SAMPLE 500
-#define ACTIVE_TENSION 0.1
+#define SUB_SAMPLE 10
+
 class Connection{
     t_index indices[2];
 
@@ -31,6 +30,7 @@ class Connection{
     public:
         Connection(t_index a_index, t_index b_index);
         void setPositions(float* positions);
+        void setSeparatePositions(float* _a, float* _b);
         bool hasIndex(t_index t);
         void update();
         float length;
@@ -66,7 +66,13 @@ class Triangle{
 };
 
 class Node{
+    
+
     public:
+    static float DRAG;
+    static float ACTIVE_TENSION;
+    static float PNOT;
+    static float SPRING;
         Node();
         std::vector<Triangle*> triangles;
         std::vector<Connection*> connections;
@@ -93,6 +99,7 @@ class Node{
 };
 
 class CellObject{
+    
     GLuint proggy;
     std::vector<Node*> nodes;
     float* node_data;
@@ -121,6 +128,7 @@ class CellObject{
         void toggleDrawConnections();
         bool isWorking();
         void requestPerturbation();
+        void createContractileRing();
     private:
         void perturb();
 };
