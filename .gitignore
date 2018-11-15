@@ -1,0 +1,7 @@
+meshes/
+build/
+CellGL.xcode*
+CellGL.xcodeproj/
+include
+lib
+CellGL.pro*
